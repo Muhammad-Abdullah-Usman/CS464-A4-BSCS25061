@@ -4,6 +4,8 @@ public class Coin : MonoBehaviour
 {
     [SerializeField] int value = 1;
     [SerializeField] float spinSpeed = 90f;
+    [SerializeField] AudioClip pickupClip;
+    [SerializeField] GameObject sparklePrefab;
 
     bool collected;
 
@@ -25,6 +27,8 @@ public class Coin : MonoBehaviour
 
         collected = true;
         GameManager.Instance.AddScore(value);
+        SfxPlayer.Instance.Play(pickupClip);
+        Instantiate(sparklePrefab, transform.position, Quaternion.identity);
         Destroy(gameObject);
     }
 }

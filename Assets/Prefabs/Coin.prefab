@@ -127,3 +127,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Coin
   value: 1
   spinSpeed: 90
+  pickupClip: {fileID: 8300000, guid: f527972cd86db0740b6259a74355fe8d, type: 3}
+  sparklePrefab: {fileID: 3021475413002456507, guid: 8db01298e15a74040b665f46d5eba267, type: 3}

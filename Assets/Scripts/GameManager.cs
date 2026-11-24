@@ -1,22 +1,27 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
     [SerializeField] TMP_Text scoreText;
-    [SerializeField] TMP_Text healthText;
     [SerializeField] TMP_Text livesText;
     [SerializeField] GameObject winPanel;
     [SerializeField] GameObject losePanel;
+    [SerializeField] GameObject winFirstButton;
+    [SerializeField] GameObject loseFirstButton;
+    [SerializeField] TMP_Text winTimeText;
+    [SerializeField] LevelLoader loader;
     [SerializeField] int targetScore = 5;
     [SerializeField] bool requireExit;
     [SerializeField] int startingLives = 3;
     [SerializeField] bool requireSurvival;
     bool survivalComplete;
+    [SerializeField] AudioClip winClip;
+    [SerializeField] AudioClip loseClip;
 
     int score;
     int lives;
@@ -49,13 +54,13 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.R) && !PauseMenu.IsPaused)
             Restart();
 
         if (IsPlaying && requireSurvival && survivalComplete &&
             score >= targetScore && !requireExit)
         {
-            EndGame(winPanel);
+            Won();
         }
     }
 
@@ -67,14 +72,12 @@ public class GameManager : MonoBehaviour
         UpdateUI();
 
         if (score >= targetScore && !requireExit && !requireSurvival)
-            EndGame(winPanel);
+            Won();
     }
 
     public void UpdateUI()
     {
         scoreText.text = $"Coins: {score} / {targetScore}";
-        healthText.text =
-            $"Hearts: {playerHealth.Current} / {playerHealth.MaxHealth}";
         livesText.text = $"Lives: {lives}";
     }
 
@@ -86,7 +89,7 @@ public class GameManager : MonoBehaviour
         UpdateUI();
 
         if (lives <= 0)
-            EndGame(losePanel);
+            Lost();
         else
             StartCoroutine(Respawn());
     }
@@ -105,45 +108,60 @@ public class GameManager : MonoBehaviour
         UpdateUI();
     }
 
-    void EndGame(GameObject panel)
+    void Won()
+    {
+        int level = gameObject.scene.buildIndex;
+        float time = Time.timeSinceLevelLoad;
+        bool best = SaveData.Record(level, time);
+        SaveData.Unlock(level + 1);
+        ShowWinScreen(best, time);
+    }
+
+    void ShowWinScreen(bool best, float time)
+    {
+        int level = gameObject.scene.buildIndex;
+
+        if (best)
+            winTimeText.text = $"Time: {time:0.0} s  NEW BEST!";
+        else
+            winTimeText.text = $"Time: {time:0.0} s  (best {SaveData.BestTime(level):0.0} s)";
+
+        SfxPlayer.Instance.Play(winClip);
+        EndGame(winPanel, winFirstButton);
+    }
+
+    void Lost()
+    {
+        SfxPlayer.Instance.Play(loseClip);
+        EndGame(losePanel, loseFirstButton);
+    }
+
+    void EndGame(GameObject panel, GameObject firstButton)
     {
         gameEnded = true;
         panel.SetActive(true);
         Time.timeScale = 0f;
+        EventSystem.current.SetSelectedGameObject(firstButton);
     }
 
     public void TryExit()
     {
         if (IsPlaying && requireExit && score >= targetScore)
-            EndGame(winPanel);
-    }
-
-    public void Restart()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(
-            SceneManager.GetActiveScene().buildIndex);
-    }
-
-    public void NextLevel()
-    {
-        int next = SceneManager.GetActiveScene().buildIndex + 1;
-
-        if (next >= SceneManager.sceneCountInBuildSettings)
-            next = 0;
-
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(next);
+            Won();
     }
 
     public void TimeExpired()
     {
         if (!gameEnded)
-            EndGame(losePanel);
+            Lost();
     }
 
     public void SurvivalFinished()
     {
         survivalComplete = true;
     }
+
+    public void Restart() => loader.Reload();
+    public void NextLevel() => loader.LoadNext();
+    public void MainMenu() => loader.LoadMenu();
 }

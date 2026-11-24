@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (PauseMenu.IsPaused) return;
+
         input = Vector3.ClampMagnitude(
             new Vector3(
                 Input.GetAxisRaw("Horizontal"),
