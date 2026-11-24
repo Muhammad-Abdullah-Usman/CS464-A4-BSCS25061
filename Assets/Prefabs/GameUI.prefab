@@ -1599,7 +1599,7 @@ GameObject:
   - component: {fileID: 3394650281276991757}
   - component: {fileID: 6499746851529440754}
   - component: {fileID: 8111391742721140160}
-  - component: {fileID: 5155861216491659193}
+  - component: {fileID: 1141737024296901682}
   m_Layer: 0
   m_Name: GameUI
   m_TagString: Untagged
@@ -1680,7 +1680,7 @@ MonoBehaviour:
   lastInPlayOrder: 6
   loadingPanel: {fileID: 6238501983329247699}
   progressBar: {fileID: 6970911918440691784}
---- !u!114 &5155861216491659193
+--- !u!114 &1141737024296901682
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1689,10 +1689,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2813535767270184584}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b1e52f7065bbd4a4ea3f74cc27aad6fe, type: 3}
+  m_Script: {fileID: 11500000, guid: c401412941a318446abe2d145a8233a5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ClickSound
-  clickClip: {fileID: 8300000, guid: e030628dd9abff649a6bfb0d5b9cdcca, type: 3}
+  m_EditorClassIdentifier: Assembly-CSharp::LevelTimer
+  timerText: {fileID: 0}
+  timeLimit: 35
+  survivalMode: 0
 --- !u!1 &3127013993791827439
 GameObject:
   m_ObjectHideFlags: 0
