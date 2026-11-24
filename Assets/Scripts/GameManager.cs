@@ -20,6 +20,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] int startingLives = 3;
     [SerializeField] bool requireSurvival;
     bool survivalComplete;
+    [SerializeField] AudioClip winClip;
+    [SerializeField] AudioClip loseClip;
 
     int score;
     int lives;
@@ -124,11 +126,13 @@ public class GameManager : MonoBehaviour
         else
             winTimeText.text = $"Time: {time:0.0} s  (best {SaveData.BestTime(level):0.0} s)";
 
+        SfxPlayer.Instance.Play(winClip);
         EndGame(winPanel, winFirstButton);
     }
 
     void Lost()
     {
+        SfxPlayer.Instance.Play(loseClip);
         EndGame(losePanel, loseFirstButton);
     }
 
