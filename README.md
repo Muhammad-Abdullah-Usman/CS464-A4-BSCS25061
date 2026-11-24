@@ -1,54 +1,34 @@
-# CS464 Assignment 03 · Muhammad Abdullah Usman · BSCS25061
+# CS464 Assignment 04 . Muhammad Abdullah Usman . BSCS25061
+**Video (90-180 s):** https://drive.google.com/file/d/1K-H4-HSiCLK6vSW-xnx8VV8TEfSWETWf/view?usp=sharing
+<p>
+<img src="Docs/hud-16x9.png" width="320" alt="The HUD at 16:9">
+<img src="Docs/hud-4x3.png" width="240" alt="The HUD at 4:3">
+<img src="Docs/hud-gray.png" width="320" alt="The HUD in grayscale">
+</p>
 
-- **Video (60–120 s):** [Watch demonstration](https://drive.google.com/file/d/1IHGum9fa3U_Lea1pywpSp2XHB0PL9VSw/view?usp=sharing)
-- **Started from:** [My Lab06 repository](https://github.com/Muhammad-Abdullah-Usman/ITU-CS-464-LAB-06-BSCS25061). These five levels were newly created for Lab06 and reused here following the instructor's group clarification.
-- **Controls:** WASD or arrow keys to move; R to restart; buttons to restart or continue.
-- **To win a level:** Level01: collect 5 coins. Level02: collect 6 coins and reach the exit. Level03: collect 8 coins. Level04: collect 6 coins and reach the exit within 35 seconds. Level05: collect 8 coins and survive 45 seconds.
-
-## Levels
-
-| Level | Screenshot | New idea | Combined with |
+## Settings
+| Part | Setting | Value | Why |
 |---|---|---|---|
-| Level01 | <img src="Docs/a3/level01.png" width="320"> | Coins and a bounce pad | A raised platform |
-| Level02 | <img src="Docs/a3/level02.png" width="320"> | Damage pads and an exit goal | Coins and barriers |
-| Level03 | <img src="Docs/a3/level03.png" width="320"> | A guard that patrols, chases and returns | Coins and damage pads |
-| Level04 | <img src="Docs/a3/level04.png" width="320"> | Crushers with warnings and a countdown | Coins and an exit in a narrow corridor |
-| Level05 | <img src="Docs/a3/level05.png" width="320"> | Timed speed pickups and survival | Coins, two guards and crushers |
+| A | Harmony . base hue | split-complementary . 195 | A calm teal base; the two warm accents opposite it pull the eye to score and danger |
+| A | Dark . mid . light | #122329 . #66B3CC . #E9F4F7 | Panels, buttons and text sit at three different values, so they still separate in grayscale |
+| A | Accents | #FFCF40 . #F24973 | Gold for coins and score, red for damage and an empty health bar |
+| A | HUD text (#E9F4F7) on its panel (#122329) | 14.44 : 1 | Text sits on a solid panel, well above 4.5 : 1 |
+| A | Button label (#122329) on the button (#66B3CC) | 6.84 : 1 | A dark label, because white on this teal is only 2.11 : 1 |
+| B | Music . SFX groups, as mixed | 0 dB . 0 dB | Both groups at unity; the music source sits at 0.5 volume so effects stay on top |
+| B | Slider at 1 . 0.5 . 0.0001 | 0 dB . -6 dB . -80 dB | Log10(v) x 20, so the slider's bottom is silence |
+| C | Guard hum, in Level 3 | Logarithmic . Min 1 m . Max 12 m | Min is the guard's size; a natural fade you can hear coming from half the arena away |
+| C | Crusher thud, in Level 4 | Linear . Min 2 m . Max 10 m | Min covers the crusher; linear goes silent at 10 m, so only nearby crushers are heard |
+| C | AudioListener | on the player | The camera is a fixed top-down view several metres away, so ListenerOnPlayer follows the ball's position |
+| D | unlocked | int . default 1 | Level 1 is always open on a fresh install |
+| D | best1 - best5 | float . HasKey first | No key means no time yet, so no fake 0.0 s best |
+| D | MusicVolume | float . default 1 | Full volume on first run, and never Log10(0) |
 
-## The numbers
+## Answers
+1. **What `Time.timeScale = 0` stops in my game, and what it doesn't:** It stops physics and FixedUpdate, so the ball, guards and crushers freeze, plus anything using Time.deltaTime: the coin spin, LevelTimer and the respawn WaitForSeconds. It does not stop Update, input, the EventSystem or audio. So PlayerController returns early while PauseMenu.IsPaused, Esc is still read in PauseMenu.Update, menus work from the keyboard, the health bar's lag runs on unscaled time, and I pause sound with AudioListener.pause.
+2. **What survives a LoadScene in my game, and how:** Music and SfxPlayer survive through DontDestroyOnLoad, and each checks for an existing instance in Awake, so only one of each is ever kept. PlayerPrefs keys (unlocked, best1 to best5, MusicVolume) survive because they are on disk. Statics survive too: PauseMenu.IsPaused, Time.timeScale and AudioListener.pause, which is why Restart and Quit call Resume() first and LevelLoader.Load sets the time scale back to 1. Everything else is rebuilt.
+3. **Why every PlayerPrefs read in my game has a default:** On a fresh install no key exists yet. GetInt("unlocked", 1) returns 1, so Level 1 is open instead of every level being locked. GetFloat("MusicVolume", 1f) gives full volume instead of 0, which would make Log10 return minus infinity. Best times check HasKey first, so the level select shows "Level 2" rather than a fake 0.0 s record. Every key is spelled once, inside SaveData.
+4. **An exception a forgotten unsubscribe would throw, and why mine can't:** If a listener did += on a static event and never -=, it would stay subscribed after a restart destroyed it, and the next hit would call into a destroyed component and throw a MissingReferenceException. In my game HealthBarListener, HurtSound and HitSparks all subscribe to Health.Damaged in OnEnable and unsubscribe in OnDisable. OnDisable runs when the scene unloads, so nothing destroyed is ever left subscribed.
 
-| Number | Value | Why this value |
-|---|---|---|
-| Patrol speed | 2 m/s | Makes the patrol easy to observe before approaching the guard |
-| Chase range | 4 m | Requires the player to get close before the guard starts chasing |
-| Knockback | 8, ForceMode.Impulse | Gives a noticeable push away from the hazard after a hit |
-| I-frames | 1 second | Gives the player time to move away without taking damage every physics step |
-| Power-up duration | 6 seconds | Gives enough time to cross the arena and reach the second pickup |
-
-## Short answers
-
-**1. Why does a trigger need a Rigidbody on at least one of the two objects?**
-
-Unity needs at least one Rigidbody in the pair for these trigger interactions.
-My player has a Rigidbody, so the coins and stationary hazards only need
-trigger colliders. Moving guards have their own kinematic Rigidbodies.
-
-**2. Which ForceMode do your knockback and your Part A force use, and why each?**
-
-Knockback uses ForceMode.Impulse because it applies a single push whose
-effect depends on mass. The bounce pad uses ForceMode.VelocityChange
-because it gives a single upward velocity change independent of mass.
-Movement input pauses briefly after damage so it does not fight the knockback.
-
-**3. What does your code do when a second power-up is picked up while one is running?**
-
-It refreshes the boost to 6 seconds from the second pickup.
-The multiplier stays at 1.5 instead of stacking.
-The timer stays on the player, so destroying the pickup does not stop it.
-
-**4. Why can == fail as an arrival check, and when does it work?**
-
-Movement can pass a waypoint without getting inside the small tolerance
-used by Vector3 equality. MoveTowards can reach the target exactly when
-one step covers the remaining distance, so equality can work after that move.
-My guard uses a distance check of less than 0.15 metres instead.
+## Credits
+- "Bossa Nova" (8bit Bossa.mp3) . Joth . https://opengameart.org/content/bossa-nova . CC0
+- Sound effects (coin, hit, click, win, lose, guard hum, crusher thud) . Kenney . https://kenney.nl/assets . CC0
