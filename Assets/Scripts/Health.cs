@@ -1,9 +1,13 @@
+using System;
 using UnityEngine;
 
 public class Health : MonoBehaviour
 {
     [SerializeField] int maxHealth = 3;
     [SerializeField] float iFrames = 1f;
+
+    public event Action<int, int> Damaged;
+    public event Action<int, int> Healed;
 
     int current;
     float invulnerableUntil;
@@ -25,7 +29,7 @@ public class Health : MonoBehaviour
 
         current = Mathf.Max(0, current - amount);
         invulnerableUntil = Time.time + iFrames;
-        GameManager.Instance.UpdateUI();
+        Damaged?.Invoke(current, maxHealth);
 
         if (current <= 0)
             GameManager.Instance.PlayerDied();
@@ -46,5 +50,6 @@ public class Health : MonoBehaviour
     {
         current = maxHealth;
         invulnerableUntil = Time.time + protection;
+        Healed?.Invoke(current, maxHealth);
     }
 }
